@@ -1,4 +1,5 @@
 # ao: auto-opener
+`xdg-open` based multi file/url opener. <br>
 The name is based on calling someone's attention with the expression "ao", largely used in Rome. Here instead we "call" files and URLs.
 
 ### Installation
