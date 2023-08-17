@@ -9,6 +9,7 @@ import subprocess
 
 TOP_LEVEL_COMMANDS = ["conf", "list", "help"]
 SUB_COMMANDS = ["list", "add", "remove"]
+fallback_path = os.path.expanduser("~/.config/auto-opener/config.config")
 
 # --- Error Handling ---
 
@@ -25,7 +26,31 @@ def valid_link(link):
     link = link.strip()
     return link.startswith("http") or exist_path(link)
 
-# --- Command Line Argument Parsing ---
+def generate_key_list(config):
+    return [key for key in config]
+
+def cardinal_print(to_print):
+    for i, element in enumerate(to_print, 0): print(f"{i}) {element}")
+
+def print_key_list(config):
+    key_list = generate_key_list(config)
+    print("Titles in config file:")
+    cardinal_print(key_list)
+    return key_list
+
+def display_help():
+    top_level_commands_str = ", ".join(TOP_LEVEL_COMMANDS)
+    sub_commands_str = ", ".join(SUB_COMMANDS)
+    help_text = (
+        "Help:\n"
+        f"  ao <title>                         As default usage\n"
+        f"  ao <top-level command>.            Top-level commands: [{top_level_commands_str}]\n"
+        f"  ao <title> OPTIONAL <sub-command>. Sub commands: [{sub_commands_str}]\n"
+        f"Please note: add and remove commands are user-interactive."
+    )
+    print(help_text)
+
+# --- Command line args and configuration ---
 
 def parse_args(args):
     n = len(args)
@@ -45,8 +70,6 @@ def parse_args(args):
             return None, sub_command, 1, title
 
     fatal_error("Not a valid command.")
-
-# --- Configuration Parsing and Writing ---
 
 def parse_config(filepath):
     config = {}
@@ -86,19 +109,7 @@ def open_links(links):
         else:
             print(f"`{link}` is not a valid URL or filepath.")
 
-# --- Main Functionality ---
-
-def main(filepath, to_open):
-    config = parse_config(filepath)
-    if to_open in config:
-        links = config[to_open]
-        open_links(links)
-    else:
-        print(f"ERR: {to_open} not in config file.")
-
 # --- User Input Handling ---
-
-fallback_path = os.path.expanduser("~/.config/auto-opener/config.config")
 
 def controlled_input(upper_limit, message):
     valid_input = ""
@@ -107,19 +118,7 @@ def controlled_input(upper_limit, message):
 
     return int(valid_input)
 
-# --- Printing and List Handling ---
 
-def generate_key_list(config):
-    return [key for key in config]
-
-def cardinal_print(to_print):
-    for i, element in enumerate(to_print, 0): print(f"{i}) {element}")
-
-def print_key_list(config):
-    key_list = generate_key_list(config)
-    print("Titles in config file:")
-    cardinal_print(key_list)
-    return key_list
 
 # --- Top-Level Command Handling ---
 
@@ -160,21 +159,15 @@ def handle_sub_command(config, command, title_to_open):
     if modified_config:
         rewrite_config(path, config)
 
-# --- Displaying Help ---
+# --- Main Functionality ---
 
-def display_help():
-    top_level_commands_str = ", ".join(TOP_LEVEL_COMMANDS)
-    sub_commands_str = ", ".join(SUB_COMMANDS)
-    help_text = (
-        "Help:\n"
-        f"  ao <title>                         As default usage\n"
-        f"  ao <top-level command>.            Top-level commands: [{top_level_commands_str}]\n"
-        f"  ao <title> OPTIONAL <sub-command>. Sub commands: [{sub_commands_str}]\n"
-        f"Please note: add and remove commands are user-interactive."
-    )
-    print(help_text)
-
-# --- Main Execution ---
+def main(filepath, to_open):
+    config = parse_config(filepath)
+    if to_open in config:
+        links = config[to_open]
+        open_links(links)
+    else:
+        print(f"ERR: {to_open} not in config file.")
 
 if __name__ == "__main__":
     args = sys.argv
