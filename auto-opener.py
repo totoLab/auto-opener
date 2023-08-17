@@ -3,8 +3,8 @@
 import sys, os, re, subprocess
 
 
-TOP_LEVEL_COMMANDS = ["conf", "help"]
-SUB_COMMANDS = ["add", "remove"]
+TOP_LEVEL_COMMANDS = ["conf", "list", "help"]
+SUB_COMMANDS = ["list", "add", "remove"]
 
 def todo():
     fatal_error("Not yet implemented.")
@@ -60,6 +60,17 @@ def parse_config(filepath):
 
     return config
 
+def rewrite_config(filepath, config):
+    string_to_write = ""
+    for key in config:
+        string_to_write += f"[{key}]\n"
+        for link in config[key]:
+            string_to_write += f"{link}\n"
+        string_to_write += "\n"
+
+    with open(filepath, "w") as f:
+        f.write(string_to_write)    
+
 def open_links(links):
     for link in links:
         if valid_link(link):
@@ -79,12 +90,33 @@ def main(filepath, to_open):
 
 fallback_path = os.path.expanduser("~/.config/auto-opener/config.config")
 
+def controlled_input(upper_limit, message):
+    valid_input = ""
+    while not valid_input.isnumeric() or 0 > int(valid_input) or int(valid_input) >= upper_limit:
+        valid_input = input(f"Insert a valid number between 0 and {upper_limit - 1}: ")
+
+    return int(valid_input)
+
+def generate_key_list(config):
+    return [key for key in config]
+
+def cardinal_print(to_print):
+    for i, element in enumerate(to_print, 0): print(f"{i}) {element}")
+
+def print_key_list(config):
+    key_list = generate_key_list(config)
+    print("Titles in config file:")
+    cardinal_print(key_list)
+    return key_list
+
 if __name__ == "__main__":
     args = sys.argv
 
     path, command, command_type, title_to_open = parse_args(args)
     if path is None:
         path = fallback_path
+
+    config = parse_config(path)
 
     if command_type == 0:
         if command == "conf":
@@ -100,12 +132,35 @@ if __name__ == "__main__":
                 f"  ao <title> OPTIONAL <sub-command>. Sub commands: [{sub_commands_str}]"
             )
             print(help_text)
+        elif command == "list":
+            print_key_list(config)
     elif command_type == 1:
         if command == "open":
             main(path, title_to_open)
-        elif command == "add":
-            todo()
-        elif command == "remove":
-            todo()
+        elif command in SUB_COMMANDS:
+            modified_config = False
+            if command == "list":
+                links = config[title_to_open]
+                print(f"Links of title {title_to_open}:")
+                for link in links: print(link)
+            elif command == "add":
+                new_link = input(f"Insert filepath/url to {command} to {title_to_open}{' (new)' if title_to_open not in config else ''}: ")
+                if title_to_open not in config:
+                    config[title_to_open] = []
+                config[title_to_open].append(new_link)
+                modified_config = True
+                print(f"{new_link} added successfully to {title_to_open}")
+            elif command == "remove":
+                links_list = config[title_to_open]
+                print("Current titles' list:")
+                cardinal_print(links_list)
+                index = controlled_input(len(links_list), "Insert index of the element to remove: ")
+                element = links_list[index]
+                config[title_to_open].remove(element)
+                modified_config = True
+                print(f"{element} removed successfully from {title_to_open}")
+
+            if modified_config:
+                rewrite_config(path, config)
     else:
         print("Unhandled case. Go fix.")
