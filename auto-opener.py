@@ -1,6 +1,13 @@
 #!/usr/bin/python3
 
-import sys, os, re
+import sys, os, re, subprocess
+
+
+TOP_LEVEL_COMMANDS = ["conf", "help"]
+SUB_COMMANDS = ["add", "remove"]
+
+def todo():
+    fatal_error("Not yet implemented.")
 
 def fatal_error(message):
     print(message)
@@ -12,6 +19,25 @@ def exist_path(filepath):
 def valid_link(link):
     link = link.strip()
     return "http" in link[:6] or exist_path(link)
+
+def parse_args(args):
+    n = len(args)
+
+    if n == 1:
+        fatal_error("Not enough arguments.")
+    elif n == 2:
+        command = args[1]
+        if command in TOP_LEVEL_COMMANDS:
+            return None, command, 0, None
+        else:
+            return None, "open", 1, command
+    elif n == 3:
+        title = args[1]
+        sub_command = args[2]
+        if sub_command in SUB_COMMANDS:
+            return None, sub_command, 1, title
+
+    fatal_error("Not a valid command.")
 
 def parse_config(filepath):
     config = {}
@@ -56,12 +82,24 @@ fallback_path = os.path.expanduser("~/.config/auto-opener/config.config")
 if __name__ == "__main__":
     args = sys.argv
 
-    config_to_open = "default"
-    if len(args) > 1:
-        config_to_open = args[1]
+    path, command, command_type, title_to_open = parse_args(args)
+    if path is None:
+        path = fallback_path
 
-    path = fallback_path
-    if len(args) > 2:
-        path = args[2]
-
-    main(path, config_to_open)
+    if command_type == 0:
+        if command == "conf":
+            subprocess.call(('xdg-open', path))
+            print("Opened config.")
+        elif command == "help":
+            top_level_commands_str = ", ".join(TOP_LEVEL_COMMANDS)
+            sub_commands_str = ", ".join(SUB_COMMANDS)
+            print(f"Help: \n  ao <top-level command>.            Top-level commands: [{top_level_commands_str}] \n  ao <title> OPTIONAL <sub-command>. Sub commands: [{sub_commands_str}]")
+    elif command_type == 1:
+        if command == "open":
+            main(path, title_to_open)
+        elif command == "add":
+            todo()
+        elif command == "remove":
+            todo()
+    else:
+        print("Unhandled case. Go fix.")
