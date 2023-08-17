@@ -11,3 +11,6 @@ Running `install.sh` will create the necessary directory structure `~/.config/au
 ### Running
 The script can be executed as `python auto-opener.py` or directly from shell `./auto-opener.py`. <br>
 Creating a soft-link using this command `ln -s path/to/auto-opener.py ao` or moving the script inside a PATH folder, lets it execute from anywhere with this syntax: `ao example1`.
+
+### Usage
+View usage running `ao help`.
