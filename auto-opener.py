@@ -102,6 +102,53 @@ def print_key_list(config):
     cardinal_print(key_list)
     return key_list
 
+def handle_top_level_command(config, command):
+    if command == "conf":
+        subprocess.call(('xdg-open', path))
+        print("Opened config.")
+    elif command == "help":
+        display_help()
+    elif command == "list":
+        print_key_list(config)
+
+def handle_sub_command(config, command, title_to_open):
+    modified_config = False
+    if command == "list":
+        links = config.get(title_to_open, [])
+        print(f"Links of title {title_to_open}:")
+        cardinal_print(links)
+    elif command == "add":
+        new_link = input(f"Insert filepath/url to {command} to {title_to_open}{' (new)' if title_to_open not in config else ''}: ")
+        config.setdefault(title_to_open, []).append(new_link)
+        modified_config = True
+        print(f"{new_link} added successfully to {title_to_open}")
+    elif command == "remove":
+        links_list = config.get(title_to_open, [])
+        print("Current titles' list:")
+        cardinal_print(links_list)
+        index = controlled_input(len(links_list), "Insert index of the element to remove: ")
+        try:
+            element = links_list.pop(index)
+            modified_config = True
+            print(f"{element} removed successfully from {title_to_open}")
+        except IndexError:
+            print("Invalid index. No element removed.")
+        
+    if modified_config:
+        rewrite_config(path, config)
+
+def display_help():
+    top_level_commands_str = ", ".join(TOP_LEVEL_COMMANDS)
+    sub_commands_str = ", ".join(SUB_COMMANDS)
+    help_text = (
+        "Help:\n"
+        f"  ao <title>                         As default usage\n"
+        f"  ao <top-level command>.            Top-level commands: [{top_level_commands_str}]\n"
+        f"  ao <title> OPTIONAL <sub-command>. Sub commands: [{sub_commands_str}]"
+        f"Please note: add and remove commands are user-interactive."
+    )
+    print(help_text)
+
 if __name__ == "__main__":
     args = sys.argv
 
@@ -112,49 +159,11 @@ if __name__ == "__main__":
     config = parse_config(path)
 
     if command_type == 0:
-        if command == "conf":
-            subprocess.call(('xdg-open', path))
-            print("Opened config.")
-        elif command == "help":
-            top_level_commands_str = ", ".join(TOP_LEVEL_COMMANDS)
-            sub_commands_str = ", ".join(SUB_COMMANDS)
-            help_text = (
-                "Help:\n"
-                f"  ao <title>                         As default usage\n"
-                f"  ao <top-level command>.            Top-level commands: [{top_level_commands_str}]\n"
-                f"  ao <title> OPTIONAL <sub-command>. Sub commands: [{sub_commands_str}]"
-                f"Please note: add and remove commands are user-interactive."
-            )
-            print(help_text)
-        elif command == "list":
-            print_key_list(config)
+        handle_top_level_command(config, command)
     elif command_type == 1:
         if command == "open":
             main(path, title_to_open)
         elif command in SUB_COMMANDS:
-            modified_config = False
-            if command == "list":
-                links = config[title_to_open]
-                print(f"Links of title {title_to_open}:")
-                for link in links: print(link)
-            elif command == "add":
-                new_link = input(f"Insert filepath/url to {command} to {title_to_open}{' (new)' if title_to_open not in config else ''}: ")
-                if title_to_open not in config:
-                    config[title_to_open] = []
-                config[title_to_open].append(new_link)
-                modified_config = True
-                print(f"{new_link} added successfully to {title_to_open}")
-            elif command == "remove":
-                links_list = config[title_to_open]
-                print("Current titles' list:")
-                cardinal_print(links_list)
-                index = controlled_input(len(links_list), "Insert index of the element to remove: ")
-                element = links_list[index]
-                config[title_to_open].remove(element)
-                modified_config = True
-                print(f"{element} removed successfully from {title_to_open}")
-
-            if modified_config:
-                rewrite_config(path, config)
+            handle_sub_command(config, command, title_to_open)
     else:
         print("Unhandled case. Go fix.")
