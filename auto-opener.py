@@ -1,14 +1,22 @@
 #!/usr/bin/python3
 
-import sys, os, re, subprocess
+import sys
+import os
+import re
+import subprocess
 
+# --- Configuration ---
 
 TOP_LEVEL_COMMANDS = ["conf", "list", "help"]
 SUB_COMMANDS = ["list", "add", "remove"]
 
+# --- Error Handling ---
+
 def fatal_error(message):
     print(message)
-    sys.exit()
+    sys.exit(1)
+
+# --- Utility Functions ---
 
 def exist_path(filepath):
     return os.path.exists(filepath)
@@ -16,6 +24,8 @@ def exist_path(filepath):
 def valid_link(link):
     link = link.strip()
     return link.startswith("http") or exist_path(link)
+
+# --- Command Line Argument Parsing ---
 
 def parse_args(args):
     n = len(args)
@@ -35,6 +45,8 @@ def parse_args(args):
             return None, sub_command, 1, title
 
     fatal_error("Not a valid command.")
+
+# --- Configuration Parsing and Writing ---
 
 def parse_config(filepath):
     config = {}
@@ -64,14 +76,17 @@ def rewrite_config(filepath, config):
             f.writelines(f"{link}\n" for link in links)
             f.write("\n")
 
+# --- Link Opening ---
+
 def open_links(links):
     for link in links:
         if valid_link(link):
             os.system(f"xdg-open {link}")
             print(f"Opened successfully {link}")
         else:
-            print(f"`{link}` is not a valid url or filepath.")
+            print(f"`{link}` is not a valid URL or filepath.")
 
+# --- Main Functionality ---
 
 def main(filepath, to_open):
     config = parse_config(filepath)
@@ -81,6 +96,8 @@ def main(filepath, to_open):
     else:
         print(f"ERR: {to_open} not in config file.")
 
+# --- User Input Handling ---
+
 fallback_path = os.path.expanduser("~/.config/auto-opener/config.config")
 
 def controlled_input(upper_limit, message):
@@ -89,6 +106,8 @@ def controlled_input(upper_limit, message):
         valid_input = input(f"Insert a valid number between 0 and {upper_limit - 1}: ")
 
     return int(valid_input)
+
+# --- Printing and List Handling ---
 
 def generate_key_list(config):
     return [key for key in config]
@@ -102,6 +121,8 @@ def print_key_list(config):
     cardinal_print(key_list)
     return key_list
 
+# --- Top-Level Command Handling ---
+
 def handle_top_level_command(config, command):
     if command == "conf":
         subprocess.call(('xdg-open', path))
@@ -110,6 +131,8 @@ def handle_top_level_command(config, command):
         display_help()
     elif command == "list":
         print_key_list(config)
+
+# --- Sub-Command Handling ---
 
 def handle_sub_command(config, command, title_to_open):
     modified_config = False
@@ -137,6 +160,8 @@ def handle_sub_command(config, command, title_to_open):
     if modified_config:
         rewrite_config(path, config)
 
+# --- Displaying Help ---
+
 def display_help():
     top_level_commands_str = ", ".join(TOP_LEVEL_COMMANDS)
     sub_commands_str = ", ".join(SUB_COMMANDS)
@@ -148,6 +173,8 @@ def display_help():
         f"Please note: add and remove commands are user-interactive."
     )
     print(help_text)
+
+# --- Main Execution ---
 
 if __name__ == "__main__":
     args = sys.argv
