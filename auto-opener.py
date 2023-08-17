@@ -93,7 +93,13 @@ if __name__ == "__main__":
         elif command == "help":
             top_level_commands_str = ", ".join(TOP_LEVEL_COMMANDS)
             sub_commands_str = ", ".join(SUB_COMMANDS)
-            print(f"Help: \n  ao <top-level command>.            Top-level commands: [{top_level_commands_str}] \n  ao <title> OPTIONAL <sub-command>. Sub commands: [{sub_commands_str}]")
+            help_text = (
+                "Help:\n"
+                "  ao <title>                         As default usage\n"
+                f"  ao <top-level command>.            Top-level commands: [{top_level_commands_str}]\n"
+                f"  ao <title> OPTIONAL <sub-command>. Sub commands: [{sub_commands_str}]"
+            )
+            print(help_text)
     elif command_type == 1:
         if command == "open":
             main(path, title_to_open)
