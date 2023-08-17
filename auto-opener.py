@@ -123,16 +123,16 @@ def handle_sub_command(config, command, title_to_open):
         modified_config = True
         print(f"{new_link} added successfully to {title_to_open}")
     elif command == "remove":
-        links_list = config.get(title_to_open, [])
-        print("Current titles' list:")
-        cardinal_print(links_list)
-        index = controlled_input(len(links_list), "Insert index of the element to remove: ")
-        try:
+        if title_to_open in config:
+            links_list = config.get(title_to_open, [])
+            print("Current titles' list:")
+            cardinal_print(links_list)
+            index = controlled_input(len(links_list), "Insert index of the element to remove: ")
             element = links_list.pop(index)
             modified_config = True
             print(f"{element} removed successfully from {title_to_open}")
-        except IndexError:
-            print("Invalid index. No element removed.")
+        else:
+            fatal_error(f"Can't remove: {title_to_open} is not a title in config.")
         
     if modified_config:
         rewrite_config(path, config)
