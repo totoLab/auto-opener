@@ -144,7 +144,7 @@ def display_help():
         "Help:\n"
         f"  ao <title>                         As default usage\n"
         f"  ao <top-level command>.            Top-level commands: [{top_level_commands_str}]\n"
-        f"  ao <title> OPTIONAL <sub-command>. Sub commands: [{sub_commands_str}]"
+        f"  ao <title> OPTIONAL <sub-command>. Sub commands: [{sub_commands_str}]\n"
         f"Please note: add and remove commands are user-interactive."
     )
     print(help_text)
