@@ -6,9 +6,6 @@ import sys, os, re, subprocess
 TOP_LEVEL_COMMANDS = ["conf", "list", "help"]
 SUB_COMMANDS = ["list", "add", "remove"]
 
-def todo():
-    fatal_error("Not yet implemented.")
-
 def fatal_error(message):
     print(message)
     sys.exit()
@@ -18,7 +15,7 @@ def exist_path(filepath):
 
 def valid_link(link):
     link = link.strip()
-    return "http" in link[:6] or exist_path(link)
+    return link.startswith("http") or exist_path(link)
 
 def parse_args(args):
     n = len(args)
@@ -61,15 +58,11 @@ def parse_config(filepath):
     return config
 
 def rewrite_config(filepath, config):
-    string_to_write = ""
-    for key in config:
-        string_to_write += f"[{key}]\n"
-        for link in config[key]:
-            string_to_write += f"{link}\n"
-        string_to_write += "\n"
-
     with open(filepath, "w") as f:
-        f.write(string_to_write)    
+        for key, links in config.items():
+            f.write(f"[{key}]\n")
+            f.writelines(f"{link}\n" for link in links)
+            f.write("\n")
 
 def open_links(links):
     for link in links:
