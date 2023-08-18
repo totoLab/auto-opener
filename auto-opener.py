@@ -138,7 +138,10 @@ def handle_sub_command(config, command, title_to_open):
     if command == "list":
         links = config.get(title_to_open, [])
         print(f"Links of title {title_to_open}:")
-        cardinal_print(links)
+        if len(links) == 0:
+            print(f"no links associated with this title.")
+        else:
+            cardinal_print(links)
     elif command == "add":
         new_link = input(f"Insert filepath/url to {command} to {title_to_open}{' (new)' if title_to_open not in config else ''}: ")
         config.setdefault(title_to_open, []).append(new_link)
