@@ -147,12 +147,19 @@ def handle_sub_command(config, command, title_to_open):
     elif command == "remove":
         if title_to_open in config:
             links_list = config.get(title_to_open, [])
-            print("Current titles' list:")
-            cardinal_print(links_list)
-            index = controlled_input(len(links_list), "Insert index of the element to remove: ")
-            element = links_list.pop(index)
-            modified_config = True
-            print(f"{element} removed successfully from {title_to_open}")
+            if len(links_list) == 0:
+                remove_title = input(f"{title_to_open} has no links associated with it. Want to remove the title from configuration? [y/N] ")
+                if remove_title.strip().lower() == "y":
+                    config.pop(title_to_open)
+                    modified_config = True
+                    print(f"Removed {title_to_open} from configuration.")
+            else:
+                print("Current titles' list:")
+                cardinal_print(links_list)
+                index = controlled_input(len(links_list), "Insert index of the element to remove: ")
+                element = links_list.pop(index)
+                modified_config = True
+                print(f"{element} removed successfully from {title_to_open}")
         else:
             fatal_error(f"Can't remove: {title_to_open} is not a title in config.")
         
