@@ -43,7 +43,7 @@ def display_help():
     sub_commands_str = ", ".join(SUB_COMMANDS)
     help_text = (
         "Help:\n"
-        f"  ao <title>                         As default usage\n"
+        f"  ao <title>                         As default usage opens links related to title.\n"
         f"  ao <top-level command>.            Top-level commands: [{top_level_commands_str}]\n"
         f"  ao <title> OPTIONAL <sub-command>. Sub commands: [{sub_commands_str}]\n"
         f"Please note: add and remove commands are user-interactive."
@@ -117,8 +117,6 @@ def controlled_input(upper_limit, message):
         valid_input = input(f"Insert a valid number between 0 and {upper_limit - 1}: ")
 
     return int(valid_input)
-
-
 
 # --- Top-Level Command Handling ---
 
