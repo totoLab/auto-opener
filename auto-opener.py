@@ -108,7 +108,10 @@ def open_default(path):
         case "darwin":
             os.system(f"open {path}")
         case "win32":
-            os.startfile(path)
+            try:
+                os.startfile(path)
+            except: # TODO: FIX logs the same thing for every error in windows 
+                print("Path in config file are not formatted for Windows, ignoring.")
         case _:
             fatal_error("Couldn't detect OS platform")
 
