@@ -9,7 +9,6 @@ import subprocess
 
 TOP_LEVEL_COMMANDS = ["conf", "list", "help"]
 SUB_COMMANDS = ["list", "add", "remove"]
-fallback_path = os.path.expanduser("~/.config/auto-opener/config.config")
 
 # --- Error Handling ---
 
@@ -55,19 +54,28 @@ def display_help():
 def parse_args(args):
     n = len(args)
 
+    match sys.platform:
+        case "linux" | "linux2" | "darwin":
+            path = os.path.expanduser("~/.config/auto-opener/config.config")
+        case "win32":
+            separator = "\\"
+            path = separator.join(os.path.realpath(__file__).split(separator)[:-1] + ["template.config"])
+        case _:
+            fatal_error("Couldn't detect OS platform")
+
     if n == 1:
         fatal_error("Not enough arguments.")
     elif n == 2:
         command = args[1]
         if command in TOP_LEVEL_COMMANDS:
-            return None, command, 0, None
+            return path, command, 0, None
         else:
-            return None, "open", 1, command
+            return path, "open", 1, command
     elif n == 3:
         title = args[1]
         sub_command = args[2]
         if sub_command in SUB_COMMANDS:
-            return None, sub_command, 1, title
+            return path, sub_command, 1, title
 
     fatal_error("Not a valid command.")
 
@@ -195,8 +203,6 @@ if __name__ == "__main__":
     args = sys.argv
 
     path, command, command_type, title_to_open = parse_args(args)
-    if path is None:
-        path = fallback_path
 
     config = parse_config(path)
 
