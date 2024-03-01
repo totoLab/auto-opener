@@ -101,10 +101,21 @@ def rewrite_config(filepath, config):
 
 # --- Link Opening ---
 
+def open_default(path):
+    match sys.platform:
+        case "linux" | "linux2":
+            os.system(f"xdg-open {path}")
+        case "darwin":
+            os.system(f"open {path}")
+        case "win32":
+            os.startfile(path)
+        case _:
+            fatal_error("Couldn't detect OS platform")
+
 def open_links(links):
     for link in links:
         if valid_link(link):
-            os.system(f"xdg-open {link}")
+            open_default(link)
             print(f"Opened successfully {link}")
         else:
             print(f"`{link}` is not a valid URL or filepath.")
@@ -122,7 +133,7 @@ def controlled_input(upper_limit, message):
 
 def handle_top_level_command(config, command):
     if command == "conf":
-        subprocess.call(('xdg-open', path))
+        open_default(path)
         print("Opened config.")
     elif command == "help":
         display_help()
