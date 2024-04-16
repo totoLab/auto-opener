@@ -112,12 +112,12 @@ def rewrite_config(filepath, config):
 def open_default(path):
     match sys.platform:
         case "linux" | "linux2":
-            os.system(f"xdg-open {path}")
+            os.system(f"xdg-open '{path}'")
         case "darwin":
-            os.system(f"open {path}")
+            os.system(f"open '{path}'")
         case "win32":
             try:
-                os.startfile(path)
+                os.startfile(f"'{path}'")
             except: # TODO: FIX logs the same thing for every error in windows 
                 print("Path in config file are not formatted for Windows, ignoring.")
         case _:
