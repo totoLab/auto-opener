@@ -28,8 +28,16 @@ def valid_link(link):
 def generate_key_list(config):
     return [key for key in config]
 
-def cardinal_print(to_print):
-    for i, element in enumerate(to_print, 0): print(f"{i}) {element}")
+def make_hyperlink(url, text=None):
+    if not url.startswith("http"):
+        text = url
+        url = f"file://{url}"
+    return f'\033]8;;{url}\033\\{text}\033]8;;\033\\'
+
+def cardinal_print(to_print, as_hyperlink=False):
+    for i, element in enumerate(to_print, 0):
+        if as_hyperlink: element = make_hyperlink(element, element)
+        print(f"{i}) {element}")
 
 def print_key_list(config):
     key_list = generate_key_list(config)
@@ -161,7 +169,7 @@ def handle_sub_command(config, command, title_to_open):
         if len(links) == 0:
             print(f"no links associated with this title.")
         else:
-            cardinal_print(links)
+            cardinal_print(links, as_hyperlink=True)
     elif command == "add":
         new_link = input(f"Insert filepath/url to {command} to {title_to_open}{' (new)' if title_to_open not in config else ''}: ")
         config.setdefault(title_to_open, []).append(new_link)
@@ -178,7 +186,7 @@ def handle_sub_command(config, command, title_to_open):
                     print(f"Removed {title_to_open} from configuration.")
             else:
                 print("Current titles' list:")
-                cardinal_print(links_list)
+                cardinal_print(links_list, as_hyperlink=True)
                 index = controlled_input(len(links_list), "Insert index of the element to remove: ")
                 element = links_list.pop(index)
                 modified_config = True
