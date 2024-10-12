@@ -11,6 +11,11 @@ import argparse
 TOP_LEVEL_COMMANDS = ["conf", "list", "help"]
 SUB_COMMANDS = ["list", "add", "remove"]
 
+def setup():
+    env = os.environ.copy()
+    env.pop("WAYLAND_DISPLAY", None)    
+    env["DISPLAY"] = ":0"
+
 # --- Error Handling ---
 
 def error(message):
@@ -241,6 +246,8 @@ def open_title(config, to_open):
         error(f"ERR: {to_open} not in config file.")
 
 if __name__ == "__main__":
+    setup()
+
     args = parse_args()
     notifications = False
 
