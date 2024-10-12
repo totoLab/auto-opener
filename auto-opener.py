@@ -5,6 +5,7 @@ import os
 import re
 import subprocess
 import argparse
+import dbus
 
 # --- Configuration ---
 
@@ -20,14 +21,14 @@ def setup():
 
 def error(message):
     print(message)
-    if notifications: send_notification(message)
+    if args.notifications: send_notification(message)
 
 def fatal_error(message):
     error(message)
     sys.exit(1)
 
 def send_notification(message, error=False):
-    title = f"{os.path.basename(args[0])}{"ERROR" if error else ""}"
+    title = f"{os.path.basename(sys.argv[0])}{"ERROR" if error else ""}"
     match sys.platform:
         case "linux" | "linux2":
             session_bus = dbus.SessionBus()
@@ -122,6 +123,12 @@ def parse_args():
         nargs='?', 
         choices=SUB_COMMANDS, 
         help="Sub-command for a title: list, add, or remove."
+    )
+
+    parser.add_argument(
+        '--notifications', 
+        action='store_true',
+        help="Enable notifications for actions."
     )
     
     return parser.parse_args()
@@ -249,7 +256,6 @@ if __name__ == "__main__":
     setup()
 
     args = parse_args()
-    notifications = False
 
     path = get_config_path()    
     config = parse_config(path)
