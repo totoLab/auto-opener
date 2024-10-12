@@ -22,10 +22,13 @@ def fatal_error(message):
     sys.exit(1)
 
 def send_notification(message, error=False):
-    title = f"{args[0]}{"ERROR" if error else ""}"
+    title = f"{os.path.basename(args[0])}{"ERROR" if error else ""}"
     match sys.platform:
         case "linux" | "linux2":
-            subprocess.Popen(['notify-send', message, f"--app-name={title}"])
+            session_bus = dbus.SessionBus()
+            notify_object = session_bus.get_object('org.freedesktop.Notifications', '/org/freedesktop/Notifications')
+            notify_interface = dbus.Interface(notify_object, 'org.freedesktop.Notifications')
+            notify_interface.Notify(title, 0, '', title, message, [], {}, -1)
         case "darwin":
             CMD = '''
                 on run argv
