@@ -12,9 +12,31 @@ SUB_COMMANDS = ["list", "add", "remove"]
 
 # --- Error Handling ---
 
-def fatal_error(message):
+def error(message):
     print(message)
+    if notifications: send_notification(message)
+
+def fatal_error(message):
+    error(message)
     sys.exit(1)
+
+def send_notification(message, error=False):
+    title = f"{args[0]}{"ERROR" if error else ""}"
+    match sys.platform:
+        case "linux" | "linux2":
+            subprocess.Popen(['notify-send', message, f"--app-name={title}"])
+        case "darwin":
+            CMD = '''
+                on run argv
+                    display notification (item 2 of argv) with title (item 1 of argv)
+                end run
+            '''
+            subprocess.call([
+                'osascript', '-e', CMD, title, message])
+        case "win32":
+            pass # not implemented
+        case _:
+            fatal_error("Couldn't detect OS platform")
 
 # --- Utility Functions ---
 
@@ -137,7 +159,7 @@ def open_links(links):
             open_default(link)
             print(f"Opened successfully {link}")
         else:
-            print(f"`{link}` is not a valid URL or filepath.")
+            error(f"`{link}` is not a valid URL or filepath.")
 
 # --- User Input Handling ---
 
@@ -167,7 +189,7 @@ def handle_sub_command(config, command, title_to_open):
         links = config.get(title_to_open, [])
         print(f"Links of title {title_to_open}:")
         if len(links) == 0:
-            print(f"no links associated with this title.")
+            error(f"no links associated with this title.")
         else:
             cardinal_print(links, as_hyperlink=True)
     elif command == "add":
@@ -205,7 +227,7 @@ def main(filepath, to_open):
         links = config[to_open]
         open_links(links)
     else:
-        print(f"ERR: {to_open} not in config file.")
+        error(f"ERR: {to_open} not in config file.")
 
 if __name__ == "__main__":
     args = sys.argv
@@ -222,4 +244,4 @@ if __name__ == "__main__":
         elif command in SUB_COMMANDS:
             handle_sub_command(config, command, title_to_open)
     else:
-        print("Unhandled case. Go fix.")
+        fatal_error("Unhandled case. Go fix.")
