@@ -4,6 +4,7 @@ import sys
 import os
 import re
 import subprocess
+import argparse
 
 # --- Configuration ---
 
@@ -81,9 +82,8 @@ def display_help():
 
 # --- Command line args and configuration ---
 
-def parse_args(args):
-    n = len(args)
-
+def get_config_path():
+    path = ""
     match sys.platform:
         case "linux" | "linux2" | "darwin":
             path = os.path.expanduser("~/.config/auto-opener/config.config")
@@ -93,21 +93,30 @@ def parse_args(args):
         case _:
             fatal_error("Couldn't detect OS platform")
 
-    if n == 1:
-        fatal_error("Not enough arguments.")
-    elif n == 2:
-        command = args[1]
-        if command in TOP_LEVEL_COMMANDS:
-            return path, command, 0, None
-        else:
-            return path, "open", 1, command
-    elif n == 3:
-        title = args[1]
-        sub_command = args[2]
-        if sub_command in SUB_COMMANDS:
-            return path, sub_command, 1, title
+    return path
 
-    fatal_error("Not a valid command.")
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Auto Opener: Manage and open URLs or file paths from a configuration file.",
+        usage="%(prog)s [title] [sub-command]"
+    )
+
+    parser.add_argument(
+        'title_or_command', 
+        nargs='?', 
+        help="A title from the config or a top-level command. Top-level commands: conf, list, help."
+    )
+    
+    # Optional sub-command
+    parser.add_argument(
+        'sub_command', 
+        nargs='?', 
+        choices=SUB_COMMANDS, 
+        help="Sub-command for a title: list, add, or remove."
+    )
+    
+    return parser.parse_args()
 
 def parse_config(filepath):
     config = {}
@@ -221,8 +230,7 @@ def handle_sub_command(config, command, title_to_open):
 
 # --- Main Functionality ---
 
-def main(filepath, to_open):
-    config = parse_config(filepath)
+def open_title(config, to_open):
     if to_open in config:
         links = config[to_open]
         open_links(links)
@@ -230,18 +238,18 @@ def main(filepath, to_open):
         error(f"ERR: {to_open} not in config file.")
 
 if __name__ == "__main__":
-    args = sys.argv
+    args = parse_args()
+    notifications = False
 
-    path, command, command_type, title_to_open = parse_args(args)
-
+    path = get_config_path()    
     config = parse_config(path)
-
-    if command_type == 0:
-        handle_top_level_command(config, command)
-    elif command_type == 1:
-        if command == "open":
-            main(path, title_to_open)
-        elif command in SUB_COMMANDS:
-            handle_sub_command(config, command, title_to_open)
+    if args.title_or_command in TOP_LEVEL_COMMANDS:
+        handle_top_level_command(config, args.title_or_command)
+    elif args.title_or_command:
+        title = args.title_or_command
+        if args.sub_command:
+            handle_sub_command(config, args.sub_command, title)
+        else:  
+            open_title(config, title)
     else:
-        fatal_error("Unhandled case. Go fix.")
+        fatal_error("Invalid command or missing title. Use --help for usage.")
