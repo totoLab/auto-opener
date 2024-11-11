@@ -166,6 +166,7 @@ def rewrite_config(filepath, config):
 def open_default(path):
     match sys.platform:
         case "linux" | "linux2":
+            path = path.replace("'", "'\\''")
             os.system(f"xdg-open '{path}'")
         case "darwin":
             os.system(f"open '{path}'")
